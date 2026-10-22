@@ -1,0 +1,7 @@
+node_modules
+www
+release
+release-win8
+.env
+*.pfx
+*.p12

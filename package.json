@@ -1,0 +1,39 @@
+{
+  "name": "germanflow-desktop",
+  "productName": "GermanFlow",
+  "version": "1.0.0",
+  "description": "GermanFlow for Windows",
+  "author": "Abdelrhman Khaled",
+  "private": true,
+  "main": "src/main.cjs",
+  "scripts": {
+    "build:web": "node scripts/build-web.mjs",
+    "start": "npm run build:web && electron .",
+    "dist": "npm run build:web && electron-builder --win nsis --x64",
+    "dist:win8": "npm run build:web && electron-builder --win nsis --x64 -c.electronVersion=22.3.27 -c.nsis.artifactName=${productName}-Setup-${version}-Windows8.${ext} -c.directories.output=release-win8",
+    "dist:all": "npm run dist && npm run dist:win8"
+  },
+  "devDependencies": {
+    "electron": "45.0.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.abdelrhmankhaled.germanflow",
+    "productName": "GermanFlow",
+    "copyright": "Copyright © Abdelrhman Khaled",
+    "directories": { "output": "release", "buildResources": "build" },
+    "files": ["src/**", "www/**", "package.json"],
+    "asar": true,
+    "win": { "icon": "build/icon.png" },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "GermanFlow",
+      "deleteAppDataOnUninstall": true,
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    }
+  }
+}
