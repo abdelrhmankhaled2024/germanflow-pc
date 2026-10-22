@@ -3,5 +3,6 @@ www
 release
 release-win8
 .env
+src/config.json
 *.pfx
 *.p12

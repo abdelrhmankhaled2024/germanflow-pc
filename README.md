@@ -41,6 +41,29 @@ npm run dist:all            # both
 
 For a new version, raise `version` in `package.json` before building.
 
+## Updates
+
+The app updates itself in two ways:
+
+| What changed | What you do | How users get it |
+|---|---|---|
+| Pages, features, styles (anything in `Deutsch App\client`) | Push the web project. Vercel builds `/desktop/update.json` on every production deploy | The app checks every 30 min and from **Settings → Updates**, downloads only changed files, then shows "Update" |
+| This Electron shell (`src\*.cjs`, Electron version, icons) | `npm run release:all` and publish the GitHub draft | electron-updater downloads the new installer and shows "Restart" |
+
+Releasing a new installer:
+
+```powershell
+$env:GH_TOKEN = "<GitHub token with repo scope>"
+# raise "version" in package.json first (1.1.0 -> 1.2.0)
+npm run release:all     # builds both installers and uploads them to a draft release v<version>
+```
+
+Then on GitHub, open **Releases**, check that the draft has `latest.yml`, `win8.yml`, both `.exe` files and their `.blockmap` files, and click **Publish release**. Installed apps pick it up on their next check.
+
+- The releases repo must be **public**: installed apps read releases without a token.
+- If the client starts using a new `germanflowDesktop` API, raise `MIN_SHELL` in `Deutsch App\scripts\build-desktop.mjs` to the release that adds it. Older apps then keep their current content until they install that release.
+- Version 1.0.0 has no updater. People on 1.0.0 need to install 1.1.0 or later once by hand.
+
 ## Notes
 
 - **Before the first release**, push `D:\Deutsch App` so the live API allows the `app://germanflow` origin; until then sign-in from the app fails.

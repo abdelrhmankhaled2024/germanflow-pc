@@ -1,7 +1,7 @@
 {
   "name": "germanflow-desktop",
   "productName": "GermanFlow",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "GermanFlow for Windows",
   "author": "Abdelrhman Khaled",
   "private": true,
@@ -11,7 +11,10 @@
     "start": "npm run build:web && electron .",
     "dist": "npm run build:web && electron-builder --win nsis --x64",
     "dist:win8": "npm run build:web && electron-builder --win nsis --x64 -c.electronVersion=22.3.27 -c.nsis.artifactName=${productName}-Setup-${version}-Windows8.${ext} -c.directories.output=release-win8",
-    "dist:all": "npm run dist && npm run dist:win8"
+    "dist:all": "npm run dist && npm run dist:win8",
+    "release": "npm run build:web && electron-builder --win nsis --x64 --publish always",
+    "release:win8": "npm run build:web && electron-builder --win nsis --x64 --publish always -c.electronVersion=22.3.27 -c.nsis.artifactName=${productName}-Setup-${version}-Windows8.${ext} -c.directories.output=release-win8 -c.publish.channel=win8",
+    "release:all": "npm run release && npm run release:win8"
   },
   "devDependencies": {
     "electron": "45.0.0",
@@ -21,10 +24,19 @@
     "appId": "com.abdelrhmankhaled.germanflow",
     "productName": "GermanFlow",
     "copyright": "Copyright © Abdelrhman Khaled",
-    "directories": { "output": "release", "buildResources": "build" },
-    "files": ["src/**", "www/**", "package.json"],
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**",
+      "www/**",
+      "package.json"
+    ],
     "asar": true,
-    "win": { "icon": "build/icon.png" },
+    "win": {
+      "icon": "build/icon.png"
+    },
     "nsis": {
       "oneClick": false,
       "perMachine": false,
@@ -34,6 +46,15 @@
       "shortcutName": "GermanFlow",
       "deleteAppDataOnUninstall": true,
       "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "abdelrhmankhaled2024",
+      "repo": "germanflow-pc",
+      "releaseType": "draft"
     }
+  },
+  "dependencies": {
+    "electron-updater": "6.8.10"
   }
 }

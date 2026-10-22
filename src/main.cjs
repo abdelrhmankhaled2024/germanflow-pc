@@ -3,11 +3,11 @@ const { app, BrowserWindow, Menu, dialog, ipcMain, net, protocol, safeStorage, s
 const { existsSync, promises: fs, statSync } = require('node:fs');
 const { basename, join, normalize, sep } = require('node:path');
 const { pathToFileURL } = require('node:url');
+const updater = require('./updater.cjs');
 
 const SCHEME = 'app';
 // The API allows this origin for bearer-token requests (server config.ts corsOrigins).
 const ORIGIN = `${SCHEME}://germanflow`;
-const WWW = join(__dirname, '..', 'www');
 const TOKEN_FILE = () => join(app.getPath('userData'), 'session.bin');
 
 protocol.registerSchemesAsPrivileged([{ scheme: SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true } }]);
@@ -17,10 +17,11 @@ if (!app.requestSingleInstanceLock()) app.quit();
 let win = null;
 
 function resolveFile(url) {
-  const file = normalize(join(WWW, decodeURIComponent(new URL(url).pathname)));
-  if (!file.startsWith(WWW + sep)) return join(WWW, 'index.html');
+  const www = updater.root();
+  const file = normalize(join(www, decodeURIComponent(new URL(url).pathname)));
+  if (!file.startsWith(www + sep)) return join(www, 'index.html');
   // Client-side routes (/study, /settings…) have no file, so they get the SPA shell.
-  return existsSync(file) && statSync(file).isFile() ? file : join(WWW, 'index.html');
+  return existsSync(file) && statSync(file).isFile() ? file : join(www, 'index.html');
 }
 
 function serveApp() {
@@ -71,6 +72,10 @@ function createWindow() {
     openExternal(url);
   });
   win.webContents.on('will-attach-webview', (event) => event.preventDefault());
+  // -3 is an aborted navigation (e.g. a reload), not a broken bundle.
+  win.webContents.on('did-fail-load', (_event, code, _desc, _url, isMainFrame) => {
+    if (isMainFrame && code !== -3 && updater.fallBack()) win.loadURL(`${ORIGIN}/`);
+  });
   // There is no menu bar, so F11 is wired here.
   win.webContents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown' || input.key !== 'F11') return;
@@ -107,6 +112,12 @@ ipcMain.handle('file:save', async (event, filename, content) => {
   return true;
 });
 
+ipcMain.handle('update:status', (event) => (fromApp(event) ? updater.status() : null));
+ipcMain.handle('update:check', (event) => (fromApp(event) ? updater.check() : null));
+ipcMain.handle('update:apply', (event) => {
+  if (fromApp(event)) return updater.apply(win);
+});
+
 app.on('second-instance', () => {
   if (!win) return;
   if (win.isMinimized()) win.restore();
@@ -117,6 +128,7 @@ app.whenReady().then(() => {
   app.setAppUserModelId('com.abdelrhmankhaled.germanflow');
   Menu.setApplicationMenu(null);
   session.defaultSession.setPermissionRequestHandler((_wc, permission, allow) => allow(permission === 'fullscreen'));
+  updater.init((status) => win && !win.isDestroyed() && win.webContents.send('update:status', status));
   serveApp();
   createWindow();
 });
