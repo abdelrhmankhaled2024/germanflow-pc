@@ -10,11 +10,9 @@
     "build:web": "node scripts/build-web.mjs",
     "start": "npm run build:web && electron .",
     "dist": "npm run build:web && electron-builder --win nsis --x64",
-    "dist:win8": "npm run build:web && electron-builder --win nsis --x64 -c.electronVersion=22.3.27 -c.nsis.artifactName=${productName}-Setup-${version}-Windows8.${ext} -c.directories.output=release-win8",
-    "dist:all": "npm run dist && npm run dist:win8",
+    "dist:all": "npm run dist",
     "release": "npm run build:web && electron-builder --win nsis --x64 --publish always",
-    "release:win8": "npm run build:web && electron-builder --win nsis --x64 --publish always -c.electronVersion=22.3.27 -c.nsis.artifactName=${productName}-Setup-${version}-Windows8.${ext} -c.directories.output=release-win8 -c.publish.channel=win8",
-    "release:all": "npm run release && npm run release:win8"
+    "release:all": "npm run release"
   },
   "devDependencies": {
     "electron": "45.0.0",
