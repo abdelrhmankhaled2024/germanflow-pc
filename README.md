@@ -40,8 +40,8 @@ The app updates itself in two ways:
 
 | What changed | What you do | How users get it |
 |---|---|---|
-| Pages, features, styles (anything in `Deutsch App\client`) | Push the web project. Vercel builds `/desktop/update.json` on every production deploy | The app checks every 30 min and from **Settings → Updates**, downloads only changed files, then shows "Update" |
-| This Electron shell (`src\*.cjs`, Electron version, icons) | `npm run release:all` and publish the GitHub draft | electron-updater downloads the new installer and shows "Restart" |
+| Pages, features, styles (anything in `Deutsch App\client`) | Push the web project. Vercel builds `/desktop/update.json` on every production deploy | The app checks every 10 min, downloads only changed files, and loads them by itself on the next page change, when minimized, or after 3 min without input |
+| This Electron shell (`src\*.cjs`, Electron version, icons) | `npm run release:all` and publish the GitHub draft | electron-updater downloads the new installer and installs it silently (then reopens the app) once the window is minimized, the PC is idle for 2 min, or the app is closed |
 
 Releasing a new installer:
 

@@ -1,14 +1,15 @@
 // Two update paths:
 // - content: each production deploy on Vercel publishes /desktop/update.json; the page files are downloaded into userData, no reinstall.
 // - app: a new installer from GitHub Releases (electron-updater), needed only when this Electron shell itself changes.
-const { app, net } = require('electron');
+const { app, BrowserWindow, net, powerMonitor } = require('electron');
 const { createHash } = require('node:crypto');
 const { existsSync, readdirSync, readFileSync, promises: fs } = require('node:fs');
 const { dirname, join, normalize, sep } = require('node:path');
 
 const BUNDLED = join(__dirname, '..', 'www');
-const CHECK_EVERY_MS = 30 * 60_000;
+const CHECK_EVERY_MS = 10 * 60_000;
 const FIRST_CHECK_MS = 10_000;
+const IDLE_INSTALL_S = 120;
 const webDir = () => join(app.getPath('userData'), 'web');
 const activeFile = () => join(webDir(), 'active');
 const isId = (id) => typeof id === 'string' && /^[\w-]+$/.test(id);
@@ -155,8 +156,21 @@ function check() {
   return checking;
 }
 
+// Silent, then relaunched: the user never sees the installer wizard.
+const install = () => shell.quitAndInstall(true, true);
+
+// Installing closes and reopens the app, so it waits until the window is minimized, hidden or the PC has been idle.
+function installWhenAway() {
+  const timer = setInterval(() => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (win && win.isVisible() && !win.isMinimized() && powerMonitor.getSystemIdleTime() < IDLE_INSTALL_S) return;
+    clearInterval(timer);
+    install();
+  }, 15_000);
+}
+
 function apply(win) {
-  if (pending === 'app') return shell.quitAndInstall();
+  if (pending === 'app') return install();
   if (pending !== 'web') return;
   root = nextRoot;
   rootBuild = readBuild(root);
@@ -177,6 +191,7 @@ function initShellUpdater() {
   autoUpdater.on('update-downloaded', (info) => {
     pending = 'app';
     setStatus({ state: 'ready', kind: 'app', version: info.version });
+    installWhenAway();
   });
   return autoUpdater;
 }

@@ -1,7 +1,7 @@
 {
   "name": "germanflow-desktop",
   "productName": "GermanFlow",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "GermanFlow for Windows",
   "author": "Abdelrhman Khaled",
   "private": true,
